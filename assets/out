@@ -30,6 +30,7 @@ registry_mirror=$(jq -r '.source.registry_mirror // ""' < $payload)
 username=$(jq -r '.source.username // ""' < $payload)
 password=$(jq -r '.source.password // ""' < $payload)
 repository=$(jq -r '.source.repository // ""' < $payload)
+additional_registries=$(jq -r '.source.additional_registries // []' < $payload)
 ca_certs=$(jq -r '.source.ca_certs // []' < $payload)
 client_certs=$(jq -r '.source.client_certs // []' < $payload)
 max_concurrent_downloads=$(jq -r '.source.max_concurrent_downloads // 3' < $payload)
@@ -53,6 +54,7 @@ start_docker \
 	"$insecure_registries" \
 	"$registry_mirror"
 log_in "$username" "$password" "$registry"
+login_additional_registries "$additional_registries"
 
 tag_source=$(jq -r '.source.tag // "latest"' < $payload)
 tag_params=$(jq -r '.params.tag_file // ""' < $payload)
@@ -241,7 +243,7 @@ elif [ -n "$build" ]; then
       # see https://github.com/moby/moby/pull/32677
       # and https://github.com/awslabs/amazon-ecr-credential-helper/issues/9
       docker pull "${ecr_image}"
-    done    
+    done
   fi
 
   docker build -t "${repository}:${tag_name}" "${target[@]}" "${expanded_build_args[@]}" "${expanded_labels[@]}" -f "$dockerfile" $cache_from "$build"

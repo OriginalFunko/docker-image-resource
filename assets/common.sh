@@ -140,6 +140,19 @@ extract_registry() {
   echo "${repository}" | cut -d/ -f1
 }
 
+login_additional_registries() {
+  local raw_registries="${1}"
+  local repo_count="$(echo $raw_registries | jq -r '. | length')"
+
+  for i in $(seq 0 $(expr "$repo_count" - 1));
+  do
+    local username="$(echo $raw_registries | jq -r .[$i].username)"
+    local password="$(echo $raw_registries | jq -r .[$i].password)"
+    local registry="$(echo $raw_registries | jq -r .[$i].registry)"
+    log_in "$username" "$password" "$registry"
+  done
+}
+
 extract_repository() {
   local long_repository="${1}"
 
